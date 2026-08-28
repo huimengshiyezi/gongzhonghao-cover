@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>公众号封面配图工具</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">21:9</span>
+      <span class="brand-name">公众号封面配图工具</span>
+    </div>
+    <div class="toolbar">
+      <label class="btn btn-primary">
+        <input type="file" id="bgInput" accept="image/*" hidden />
+        上传替换背景图
+      </label>
+      <button class="btn" id="clearBgBtn">清空背景</button>
+      <span class="divider"></span>
+      <button class="btn" id="resetStyleBtn">重置文字样式</button>
+      <button class="btn" id="saveTplBtn">保存模板</button>
+      <button class="btn" id="loadTplBtn">加载模板</button>
+      <input type="file" id="loadTplInput" accept="application/json" hidden />
+      <span class="divider"></span>
+      <button class="btn" id="exportPngBtn">导出 PNG</button>
+      <button class="btn" id="exportJpgBtn">导出 JPG</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="canvas-area">
+      <div class="canvas-wrapper" id="canvasWrapper">
+        <canvas id="canvas" width="1800" height="766"></canvas>
+      </div>
+      <div class="canvas-hint">
+        <span>画板 1800 × 766  比例 21:9</span>
+        <span id="zoomLabel">100%</span>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-section">
+        <div class="section-title">标题文字</div>
+        <label class="field">
+          <span class="field-label">文本内容</span>
+          <textarea id="titleText" rows="3" placeholder="在这里输入主标题…"></textarea>
+        </label>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">字体参数</div>
+        <div class="field row">
+          <span class="field-label">字号</span>
+          <input type="range" id="fontSize" min="32" max="280" step="1" value="120" />
+          <input type="number" id="fontSizeNum" min="32" max="280" step="1" value="120" class="num-input" />
+        </div>
+        <div class="field row">
+          <span class="field-label">字间距</span>
+          <input type="range" id="letterSpacing" min="0" max="20" step="0.1" value="0" />
+          <input type="number" id="letterSpacingNum" min="0" max="20" step="0.1" value="0" class="num-input" />
+        </div>
+        <div class="field row">
+          <span class="field-label">行间距</span>
+          <input type="range" id="lineHeight" min="0.8" max="2.5" step="0.05" value="1.4" />
+          <input type="number" id="lineHeightNum" min="0.8" max="2.5" step="0.05" value="1.4" class="num-input" />
+        </div>
+        <div class="field row">
+          <span class="field-label">对齐</span>
+          <div class="seg-group" id="alignGroup">
+            <button type="button" data-val="left" class="seg active">左对齐</button>
+            <button type="button" data-val="center" class="seg">居中</button>
+            <button type="button" data-val="right" class="seg">右对齐</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">颜色</div>
+        <div class="field row">
+          <span class="field-label">字色</span>
+          <input type="color" id="textColor" value="#ffffff" />
+          <input type="text" id="textColorHex" value="#ffffff" class="hex-input" />
+        </div>
+      </div>
+
+      <div class="panel-section" id="strokeSection" data-collapsed="true">
+        <div class="section-title section-toggle">
+            <span>描边</span>
+            <label class="switch">
+              <input type="checkbox" id="strokeEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        <div class="section-body">
+          <div class="field row">
+            <span class="field-label">宽度</span>
+            <input type="range" id="strokeWidth" min="0" max="20" step="1" value="3" />
+            <input type="number" id="strokeWidthNum" min="0" max="20" step="1" value="3" class="num-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">描边色</span>
+            <input type="color" id="strokeColor" value="#000000" />
+            <input type="text" id="strokeColorHex" value="#000000" class="hex-input" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section" id="shadowSection" data-collapsed="true">
+        <div class="section-title section-toggle">
+            <span>阴影</span>
+            <label class="switch">
+              <input type="checkbox" id="shadowEnabled" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        <div class="section-body">
+          <div class="field row">
+            <span class="field-label">X 偏移</span>
+            <input type="range" id="shadowX" min="-40" max="40" step="1" value="7" />
+            <input type="number" id="shadowXNum" min="-40" max="40" step="1" value="7" class="num-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">Y 偏移</span>
+            <input type="range" id="shadowY" min="-40" max="40" step="1" value="7" />
+            <input type="number" id="shadowYNum" min="-40" max="40" step="1" value="7" class="num-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">模糊</span>
+            <input type="range" id="shadowBlur" min="0" max="40" step="1" value="9" />
+            <input type="number" id="shadowBlurNum" min="0" max="40" step="1" value="9" class="num-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">阴影色</span>
+            <input type="color" id="shadowColor" value="#000000" />
+            <input type="text" id="shadowColorHex" value="#000000" class="hex-input" />
+            <input type="range" id="shadowAlpha" min="0" max="100" step="1" value="70" />
+            <input type="number" id="shadowAlphaNum" min="0" max="100" step="1" value="70" class="num-input" />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="section-title">位置</div>
+        <p class="hint pos-hint">切换上方「对齐」会自动重置水平锚点；下方滑块可微调偏移。</p>
+        <div class="field row">
+          <span class="field-label">X 偏移</span>
+          <input type="range" id="titleX" min="0" max="180" step="1" value="50" />
+          <input type="number" id="titleXNum" min="0" max="180" step="1" value="50" class="num-input" />
+        </div>
+        <div class="field row">
+          <span class="field-label">Y 偏移</span>
+          <input type="range" id="titleY" min="0" max="766" step="1" value="200" />
+          <input type="number" id="titleYNum" min="0" max="766" step="1" value="200" class="num-input" />
+        </div>
+        <div class="field row">
+          <span class="field-label">最大宽度</span>
+          <input type="range" id="titleMaxW" min="200" max="1800" step="10" value="1800" />
+          <input type="number" id="titleMaxWNum" min="200" max="1800" step="10" value="1800" class="num-input" />
+        </div>
+      </div>
+
+      <div class="panel-section" id="wmSection">
+        <div class="section-title section-toggle">
+            <span>水印</span>
+            <label class="switch">
+              <input type="checkbox" id="wmLocked" checked />
+              <span class="slider"></span>
+            </label>
+          </div>
+        <div class="section-body">
+          <label class="field">
+            <span class="field-label">文本内容</span>
+            <input type="text" id="wmText" value="AI 绘梦师葉子" maxlength="40" />
+          </label>
+          <div class="field row">
+            <span class="field-label">字号</span>
+            <input type="range" id="wmSize" min="16" max="60" step="1" value="50" />
+            <input type="number" id="wmSizeNum" min="16" max="60" step="1" value="50" class="num-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">字色</span>
+            <input type="color" id="wmColor" value="#ffffff" />
+            <input type="text" id="wmColorHex" value="#ffffff" class="hex-input" />
+          </div>
+          <div class="field row">
+            <span class="field-label">不透明度</span>
+            <input type="range" id="wmAlpha" min="0" max="100" step="1" value="80" />
+            <input type="number" id="wmAlphaNum" min="0" max="100" step="1" value="80" class="num-input" />
+          </div>
+          <div class="wm-pos" id="wmPosFields">
+            <div class="field row">
+              <span class="field-label">X 偏移</span>
+              <input type="range" id="wmX" min="0" max="1800" step="1" value="70" />
+              <input type="number" id="wmXNum" min="0" max="1800" step="1" value="70" class="num-input" />
+            </div>
+            <div class="field row">
+              <span class="field-label">Y 偏移</span>
+              <input type="range" id="wmY" min="0" max="766" step="1" value="700" />
+              <input type="number" id="wmYNum" min="0" max="766" step="1" value="700" class="num-input" />
+            </div>
+          </div>
+        </div>
+        <p class="hint wm-hint" id="wmHint">已锁定：固定在左下角 (70, 700)。关闭锁定后可调 X/Y 偏移。</p>
+      </div>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
