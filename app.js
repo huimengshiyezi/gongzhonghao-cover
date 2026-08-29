@@ -685,15 +685,17 @@
     fitCanvas();
     window.addEventListener('resize', fitCanvas);
 
-    // 等待字体加载完成再绘制，避免回退字体影响首次渲染
-    try {
-      await ensureFontLoaded();
-    } catch (e) { /* 忽略 */ }
-
-    // 加载默认背景
+    // 先加载默认背景并立即绘制（不依赖字体，避免被慢字体阻塞导致白屏）
     await loadDefaultBg();
+    draw();
 
-    // 字体 + 背景都就绪后画一次
+    // 等待字体加载（最多 3 秒），就绪后重绘以应用真实字体
+    try {
+      await Promise.race([
+        ensureFontLoaded(),
+        new Promise((r) => setTimeout(r, 3000)),
+      ]);
+    } catch (e) { /* 忽略 */ }
     draw();
     setTimeout(draw, 200); // 兜底：再画一次防字体替换时序问题
   }
