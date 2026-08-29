@@ -20,3 +20,6 @@ desktop.ini
 
 # Git
 *.orig
+
+# 字体备份（不入库）
+scripts/backup_fonts/
