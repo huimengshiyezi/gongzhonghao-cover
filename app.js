@@ -585,7 +585,15 @@
   // ---------- 导出 ----------
   function exportImage(format, quality = 0.95) {
     const mime = format === 'jpg' ? 'image/jpeg' : 'image/png';
-    const dataURL = canvas.toDataURL(mime, quality);
+    let dataURL;
+    try {
+      dataURL = canvas.toDataURL(mime, quality);
+    } catch (e) {
+      // 画布被污染（如 file:// 下加载了跨源本地图片）时浏览器禁止导出
+      console.error('导出失败:', e);
+      toast('导出失败：浏览器安全限制（本地打开时无法导出含本地图片的画布），请使用网页版或通过本地服务器打开');
+      return;
+    }
     const ext = format === 'jpg' ? 'jpg' : 'png';
     const a = document.createElement('a');
     a.href = dataURL;
@@ -640,20 +648,36 @@
   }
 
   // ---------- 加载默认背景 ----------
+  // 优先用内嵌 dataURL（assets/bg-data.js 提供）：dataURL 与页面同源，
+  // 不会污染画布 —— 本地 file:// 双击打开时 canvas.toDataURL 导出也能用。
+  // 若 dataURL 缺失（bg-data.js 未加载），回退到相对路径文件。
   function loadDefaultBg() {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
         state.bg = {
-          dataUrl: null,
+          dataUrl: DEFAULT_BG_DATAURL,
           naturalW: img.naturalWidth,
           naturalH: img.naturalHeight,
           _img: img,
         };
         resolve();
       };
-      img.onerror = () => resolve();   // 失败不阻塞初始化
-      img.src = 'assets/default-bg.png';
+      img.onerror = () => {
+        // dataURL 加载失败才回退到文件路径
+        if (img.src !== 'assets/default-bg.png') {
+          const fb = new Image();
+          fb.onload = () => {
+            state.bg = { dataUrl: null, naturalW: fb.naturalWidth, naturalH: fb.naturalHeight, _img: fb };
+            resolve();
+          };
+          fb.onerror = () => resolve(); // 失败不阻塞初始化
+          fb.src = 'assets/default-bg.png';
+        } else {
+          resolve();
+        }
+      };
+      img.src = (typeof DEFAULT_BG_DATAURL !== 'undefined') ? DEFAULT_BG_DATAURL : 'assets/default-bg.png';
     });
   }
 
